@@ -4,6 +4,8 @@
 
 拖动一个文件夹到屏幕侧边的区域，它就变成一个悬浮图标停在那儿。之后你在任何一个文件夹里干活，只要切回资源管理器，这些图标就在手边——双击即打开。长时间没用的会缓慢下沉，重要的可以放到顶部常驻区，永不下沉。
 
+**⬇ [下载最新版本](https://github.com/hanggarry049-sys/DropBridge/releases/latest)** ｜ Windows 10 / 11 · x64 · 免安装 · 无需预装 .NET
+
 <p align="center">
   <img src="docs/overview.svg" width="820" alt="DropBridge 界面示意图：左侧贴边的悬浮条 + 右侧资源管理器窗口">
 </p>
@@ -11,7 +13,7 @@
 
 ## 快速开始
 
-1. 下载 `DropBridge-v1.0.0-win-x64.zip` 并解压。**免安装**，不需要管理员权限。
+1. 从 [Releases](https://github.com/hanggarry049-sys/DropBridge/releases/latest) 下载 `DropBridge-v1.0.0-win-x64.zip` 并解压。**免安装**，不需要管理员权限。
 2. 双击 `DropBridge.exe`。程序常驻系统托盘，不占任务栏。
 3. 打开任意资源管理器窗口，把想常驻的文件夹拖到屏幕**侧边区域**。
 4. 松手，图标就留在那儿了。
