@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <!-- 关闭隐式 using：WindowsDesktop SDK 会同时注入 System.Drawing / System.Windows.Forms，
+         与 WPF 的 Point / Image / DragEventArgs 等类型重名，必须逐文件显式导入 -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>DropBridge</AssemblyName>
+    <RootNamespace>DropBridge</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- EXE 文件图标（资源管理器 / 任务栏 / Alt+Tab 看到的那个） -->
+    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
+
+    <!-- 对外可见的程序集信息：资源管理器右键 exe → 属性 → 详细信息 里显示的就是这些。
+         发版时改 <Version> 一处即可，AssemblyVersion / FileVersion 会自动跟随。 -->
+    <Version>1.0.0</Version>
+    <Product>DropBridge</Product>
+    <AssemblyTitle>DropBridge</AssemblyTitle>
+    <Description>悬浮文件夹桥接工具：把常用文件夹拖到屏幕边缘常驻，随资源管理器出现，双击即开</Description>
+    <Company>DropBridge Project</Company>
+    <Copyright>Copyright (c) 2026 DropBridge Project</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 托盘图标走 System.Drawing.Icon 从嵌入资源读，所以这里也要作为 WPF 资源嵌入 -->
+    <Resource Include="Resources\app.ico" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,48 @@
+<Window x:Class="DropBridge.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DropBridge 设置"
+        Width="320" SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+
+    <!-- 最朴素的 StackPanel 堆控件：不做样式、不做绑定，能用就行 -->
+    <StackPanel Margin="14">
+
+        <TextBlock Text="停靠侧" />
+        <ComboBox x:Name="DockBox" Margin="0,3,0,0">
+            <ComboBoxItem Content="左侧" Tag="Left" />
+            <ComboBoxItem Content="右侧" Tag="Right" />
+        </ComboBox>
+
+        <TextBlock Text="下沉速度（像素 / 小时，0 = 不老化）" Margin="0,12,0,0" />
+        <TextBox x:Name="SinkBox" Margin="0,3,0,0" />
+
+        <TextBlock Text="侧边区域宽度（占屏宽 5 ~ 40 %）" Margin="0,12,0,0" />
+        <TextBox x:Name="WidthBox" Margin="0,3,0,0" />
+
+        <TextBlock Text="顶部常驻区占比（0 ~ 50 %）" Margin="0,12,0,0" />
+        <TextBox x:Name="NoAgeBox" Margin="0,3,0,0" />
+
+        <TextBlock Text="图标尺寸" Margin="0,12,0,0" />
+        <ComboBox x:Name="SizeBox" Margin="0,3,0,0">
+            <ComboBoxItem Content="小（48）" Tag="48" />
+            <ComboBoxItem Content="中（64）" Tag="64" />
+            <ComboBoxItem Content="大（80）" Tag="80" />
+        </ComboBox>
+
+        <CheckBox x:Name="AutoStartCheck" Content="开机自启" Margin="0,14,0,0" />
+        <CheckBox x:Name="PauseCheck" Content="暂停下沉（图标不再老化）" Margin="0,6,0,0" />
+
+        <Expander Header="使用说明" IsExpanded="True" Margin="0,16,0,0">
+            <TextBlock TextWrapping="Wrap" FontSize="12" LineHeight="18" Margin="0,8,0,0"
+                       Text="【基本用法】&#10;1. 在资源管理器里选中文件夹，拖到屏幕左侧悬浮区，即成悬浮图标。&#10;2. 悬浮区只在资源管理器位于前台（非最大化）时显示，切到其它程序自动隐藏。&#10;3. 双击悬浮图标打开该文件夹。&#10;&#10;【移回与移除】&#10;4. 把图标拖回资源管理器 = 移动（同盘）或复制（跨盘）；移动成功后图标移除，复制后图标保留。&#10;5. 图标随时间缓慢下沉，沉到底部移除区自动移除；顶部「常驻区」内的图标永不下沉。&#10;&#10;【托盘菜单】&#10;6. 右键托盘图标可设置、打开数据目录、暂停下沉、整理排列、清空、退出。" />
+        </Expander>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="确定" Width="76" IsDefault="True" Click="OnOk" />
+            <Button Content="取消" Width="76" Margin="8,0,0,0" IsCancel="True" />
+        </StackPanel>
+
+    </StackPanel>
+</Window>

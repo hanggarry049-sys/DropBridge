@@ -1,0 +1,22 @@
+# 构建产物
+bin/
+obj/
+publish/
+dist/
+
+# 构建日志
+build.log
+
+# 调试用的探针小程序（不进仓库）
+tools/
+
+# AI 助手的工作目录（项目笔记，非源码）
+.workbuddy/
+
+# 只给维护者看的上手笔记
+发布指南.md
+
+# IDE
+.vs/
+.idea/
+*.user

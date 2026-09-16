@@ -1,0 +1,70 @@
+<Window x:Class="DropBridge.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DropBridge"
+        Width="192" Height="900"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        Background="{x:Null}"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        AllowDrop="True"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
+
+    <!--
+      根容器 Background 保持 null：空白区域不参与命中测试，鼠标直接穿透到下面的
+      资源管理器，左侧导航窗格照常可点。只有检测到拖拽时才临时铺一层近乎透明的底
+      （DropSurface）把整条激活成放置区，拖完立刻还原。
+    -->
+    <Grid x:Name="Root" Background="{x:Null}">
+
+        <!-- 拖拽期临时铺底，用于接住 drop；平时 Background 为 null -->
+        <Border x:Name="DropSurface" Background="{x:Null}" />
+
+        <!-- 上方常驻区：平时完全不可见，只在拖入图标时亮起（底色 + 分隔线一起出现） -->
+        <Border x:Name="NoAgeZone" Background="{x:Null}"
+                IsHitTestVisible="False" VerticalAlignment="Top" />
+        <Rectangle x:Name="NoAgeDivider" Height="1" Fill="#30FFFFFF" Visibility="Collapsed"
+                   IsHitTestVisible="False" VerticalAlignment="Top" />
+
+        <!-- 自由摆放画布：图标可以落在这里的任何位置 -->
+        <Canvas x:Name="ItemsCanvas" Background="{x:Null}" />
+
+        <!-- 底部移除区（黑洞）：同样平时不可见，拖入时才显现 -->
+        <Border x:Name="TrashArea" Background="{x:Null}"
+                IsHitTestVisible="False" VerticalAlignment="Bottom" />
+        <Rectangle x:Name="TrashDivider" Height="1" Fill="#30FFFFFF" Visibility="Collapsed"
+                   IsHitTestVisible="False" VerticalAlignment="Bottom" />
+
+        <!-- 拖入文件夹时，三个区域各自的功能说明（半透明纯文字，无底片；位置在 LayoutZones 里定位） -->
+        <TextBlock x:Name="NoAgeLabel" Visibility="Collapsed" IsHitTestVisible="False"
+                   Text="常驻区&#xA;图标放在这里永不下沉"
+                   Foreground="#C8FFFFFF" FontSize="18" FontWeight="SemiBold" TextAlignment="Center"
+                   HorizontalAlignment="Center" VerticalAlignment="Top" />
+        <TextBlock x:Name="CenterLabel" Visibility="Collapsed" IsHitTestVisible="False"
+                   Text="普通区域&#xA;图标随时间缓慢下沉"
+                   Foreground="#C8FFFFFF" FontSize="18" FontWeight="SemiBold" TextAlignment="Center"
+                   HorizontalAlignment="Center" VerticalAlignment="Top" />
+        <TextBlock x:Name="TrashLabel" Visibility="Collapsed" IsHitTestVisible="False"
+                   Text="移除区&#xA;图标沉到底自动移除"
+                   Foreground="#C8FFFFFF" FontSize="18" FontWeight="SemiBold" TextAlignment="Center"
+                   HorizontalAlignment="Center" VerticalAlignment="Top" />
+
+        <!-- 空库常驻提示（窗口仍需可见才接得住第一次拖拽） -->
+        <TextBlock x:Name="EmptyHint" Visibility="Collapsed" IsHitTestVisible="False"
+                   Text="拖文件夹&#xA;到这里" TextAlignment="Center"
+                   Foreground="#88FFFFFF" FontSize="12"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+        <!-- 轻量操作反馈：拖入重复项、热键无选中项、源已失效等 -->
+        <Border x:Name="Toast" Visibility="Collapsed" IsHitTestVisible="False"
+                Margin="8" Padding="10,5" CornerRadius="10"
+                Background="#D0000000" HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <TextBlock x:Name="ToastText" Foreground="White" FontSize="12"
+                       TextWrapping="Wrap" TextAlignment="Center" />
+        </Border>
+    </Grid>
+</Window>

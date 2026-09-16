@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="DropBridge.app" />
+
+  <!-- asInvoker：绝不以管理员运行，否则 UIPI 会阻止资源管理器拖入 -->
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
+    <security>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  <!-- 高 DPI 交由 ApplicationHighDpiMode 项目属性配置（PerMonitorV2），此处不再声明 -->
+
+</assembly>
