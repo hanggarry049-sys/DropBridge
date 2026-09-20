@@ -20,7 +20,7 @@
 
     <!-- 对外可见的程序集信息：资源管理器右键 exe → 属性 → 详细信息 里显示的就是这些。
          发版时改 <Version> 一处即可，AssemblyVersion / FileVersion 会自动跟随。 -->
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Product>DropBridge</Product>
     <AssemblyTitle>DropBridge</AssemblyTitle>
     <Description>悬浮文件夹桥接工具：把常用文件夹拖到屏幕边缘常驻，随资源管理器出现，双击即开</Description>

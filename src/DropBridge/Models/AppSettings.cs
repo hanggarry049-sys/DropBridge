@@ -36,6 +36,13 @@ public class AppSettings
     /// <summary>暂停下沉：全部图标不再老化（拖进黑洞也不会被吸走）</summary>
     public bool PauseAging { get; set; }
 
+    /// <summary>
+    /// 离线时段（关机 / 睡眠 / 进程没在运行）的下沉折算系数：
+    /// 0 = 完全不计入（只累计电脑运行时的时长），1 = 照常计入。
+    /// 只作用于单次推进中超过一个正常 tick 间隔的那部分时长。
+    /// </summary>
+    public double OfflineSinkFactor { get; set; }
+
     public static AppSettings Load()
     {
         try

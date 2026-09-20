@@ -30,8 +30,12 @@ public partial class MainWindow : Window
     private const string ItemIdFormat = "DropBridge/ItemId";
 
     // 黑洞下沉速度（像素/小时），由设置决定；0 = 永不老化。
-    // 1080p 屏从免老化线到黑洞约 44 小时。
+    // 1080p 屏从免老化线到黑洞约 44 个运行小时（离线时段按 OfflineSinkFactor 折算）。
     private double SinkSpeed => _settings.SinkSpeedPerHour / 3600.0;   // 像素/秒
+
+    // 单次推进的时长上限（秒）。正常运行时每 5 秒推进一次，远超这个值就说明
+    // 中间有一段"没在运行"的时间——关机、睡眠，或进程根本没启动。
+    private const double MaxOnlineGapSeconds = 60;
 
     private const int WM_NCHITTEST = 0x0084;
     private const int WM_DISPLAYCHANGE = 0x007E;   // 分辨率/显示器数量变化
@@ -486,6 +490,17 @@ public partial class MainWindow : Window
             }
 
             double elapsed = (now - item.SinkAt).TotalSeconds;
+
+            // 超过一个 tick 间隔的部分属于「离线时长」（关机 / 睡眠 / 进程没起）。
+            // 不折算的话，开机后第一次推进会把整段关机时间一次性补算成位移
+            // ——关机 3 天 = 864px，足以把图标直接送进黑洞。
+            // 折算系数 0 时完全不补算，于是"只有电脑运行期间才老化"。
+            if (elapsed > MaxOnlineGapSeconds)
+            {
+                elapsed = MaxOnlineGapSeconds
+                        + (elapsed - MaxOnlineGapSeconds) * _settings.OfflineSinkFactor;
+            }
+
             // SinkSpeed > 0 才置 moved：速度为 0（永不老化）时 Y 根本没变，
             // 置了 moved 会让隐藏期每隔 30 秒白写一次 items.json，纯浪费。
             if (elapsed > 0 && SinkSpeed > 0)
