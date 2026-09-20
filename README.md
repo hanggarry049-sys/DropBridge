@@ -13,7 +13,7 @@
 
 ## 快速开始
 
-1. 从 [Releases](https://github.com/hanggarry049-sys/DropBridge/releases/latest) 下载 `DropBridge-v1.0.0-win-x64.zip` 并解压。**免安装**，不需要管理员权限。
+1. 从 [Releases](https://github.com/hanggarry049-sys/DropBridge/releases/latest) 下载 `DropBridge-vX.Y.Z-win-x64.zip` 并解压。**免安装**，不需要管理员权限。
 2. 双击 `DropBridge.exe`。程序常驻系统托盘，不占任务栏。
 3. 打开任意资源管理器窗口，把想常驻的文件夹拖到屏幕**侧边区域**。
 4. 松手，图标就留在那儿了。
