@@ -137,6 +137,20 @@ public static class Win32
             ? GetWindowLongPtr64(hWnd, nIndex)
             : GetWindowLong32(hWnd, nIndex);
 
+    // 切换 GWL_EXSTYLE 里的命中测试位（WS_EX_TRANSPARENT）时用来「原地通知」系统。
+    // 注意：**不要**带 SWP_FRAMECHANGED —— 它会让分层窗口整窗重绘，肉眼可见地闪一下。
+    public const uint SWP_NOSIZE = 0x0001;
+    public const uint SWP_NOMOVE = 0x0002;
+    public const uint SWP_NOZORDER = 0x0004;
+    public const uint SWP_NOREDRAW = 0x0008;
+    public const uint SWP_NOACTIVATE = 0x0010;
+    public const uint SWP_FRAMECHANGED = 0x0020;   // 已弃用，见上
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool SetWindowPos(
+        IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
     // ---------- Shell 通知（SHChangeNotifyRegister）----------
     // WM_USER = 0x0400，WM_APP_SHELLNOTIFY = WM_USER + 0x17 = 0x0417
     public const int WM_APP_SHELLNOTIFY = 0x0417;

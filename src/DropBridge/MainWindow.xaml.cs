@@ -55,6 +55,9 @@ public partial class MainWindow : Window
     private bool _armed;             // 检测到外部拖拽 → 整条激活为放置区
     private bool _wasLeftDown;
     private bool _downInExplorer;
+    private bool _suppressArm;       // 本轮拖动的载荷里没有文件夹 → 不再激活，并给下面的窗口让路
+    private bool? _dropAccepts;      // 本轮拖放的判据（进入时算一次）；null = 内容读不出来
+    private bool _passThrough;       // 窗口此刻是否处于「整窗不参与命中测试」状态
     private DateTime _lastAgingSave = DateTime.Now;   // 上次隐藏期下沉落盘时刻
 
     // 三个区域的底色：平时完全透明，只在拖入文件夹时亮起（说明文字 + 底色 + 分隔线一起出现）。
@@ -826,16 +829,25 @@ public partial class MainWindow : Window
             IntPtr hit = Win32.WindowFromPoint(pt);
             IntPtr root = Win32.GetAncestor(hit, Win32.GA_ROOT);
             _downInExplorer = ShellWatcher.IsExplorerWindow(root);
+
+            // 新的一次按下 = 新的一轮拖动，把上一轮留下的判据和让路状态清干净
+            _suppressArm = false;
+            _dropAccepts = null;
+            SetPassThrough(false);
         }
         else if (!down && _wasLeftDown)
         {
             _downInExplorer = false;
-            Disarm();
+            _suppressArm = false;
+            _dropAccepts = null;
+            Disarm();               // 内部会撤掉让路
         }
 
         _wasLeftDown = down;
 
-        if (down && _downInExplorer) Arm();
+        // _suppressArm：本轮拖动的载荷里已经判定「没有文件夹」并让过路了，
+        // 别再每 20ms 把它激活回来——否则会和 EvaluateDrag 里的让路互相打架。
+        if (down && _downInExplorer && !_suppressArm) Arm();
     }
 
     private void Arm()
@@ -848,13 +860,55 @@ public partial class MainWindow : Window
         DropSurface.Background = new SolidColorBrush(Color.FromArgb(0x01, 0xFF, 0xFF, 0xFF));
     }
 
-    private void Disarm()
+    private void Disarm(bool releasePassThrough = true)
     {
+        // 让路状态一并撤掉：Disarm 的绝大多数调用点都意味着「本轮拖动结束 / 取消」，
+        // 那时窗口必须恢复成能接住下一次拖放。
+        //
+        // 唯一例外是 EvaluateDrag：它判完「载荷里没有文件夹」会**立刻**重新置为让路，
+        // 若这里先撤再设就是一次纯属多余的样式往返，在分层窗口上每次都会重绘一遍
+        // （鼠标快速划过边缘时能连抖好几下）。所以那条路径传 releasePassThrough: false。
+        if (releasePassThrough) SetPassThrough(false);
+
         if (!_armed) return;
         _armed = false;
 
         DropSurface.Background = null;
         SetZoneLabels(false);
+    }
+
+    /// <summary>
+    /// 把窗口临时切成「整窗不参与命中测试」。
+    ///
+    /// 光把 e.Effects 设成 None 拦不住拖放：Arm() 已经把整条铺底激活成放置目标，
+    /// OLE 会一直把文件往这里送，用户就没法把文件丢到悬浮条下面的窗口里
+    /// （最典型的是资源管理器的左侧导航窗格）。加上 WS_EX_TRANSPARENT 之后
+    /// WindowFromPoint 会跳过本窗口，OLE 在下一次鼠标移动时重新做命中测试，
+    /// 把拖放交给下面的窗口——这才是真正的「让路」。
+    ///
+    /// 只在拖动期间短暂启用，松手 / 切换前台时立刻撤掉。
+    /// </summary>
+    private void SetPassThrough(bool on)
+    {
+        if (_passThrough == on) return;
+
+        IntPtr hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+
+        _passThrough = on;
+
+        long ex = Win32.GetWindowLongPtr(hwnd, Win32.GWL_EXSTYLE).ToInt64();
+        ex = on ? ex | Win32.WS_EX_TRANSPARENT : ex & ~Win32.WS_EX_TRANSPARENT;
+        Win32.SetWindowLongPtr(hwnd, Win32.GWL_EXSTYLE, new IntPtr(ex));
+
+        // 只动命中测试用的样式位，不碰窗口框架：
+        // 这里**绝不能**带 SWP_FRAMECHANGED —— 它会强制发一次 WM_NCCALCSIZE 并让
+        // 分层窗口（AllowsTransparency=True）整窗重绘，表现出来就是「拖拽跨过边缘闪一下」。
+        // WS_EX_TRANSPARENT 属于命中测试位，SetWindowLongPtr 写入即刻生效，不需要框架重算。
+        // 再带 SWP_NOREDRAW，确保这几次调用完全不产生任何绘制。
+        Win32.SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0,
+            Win32.SWP_NOMOVE | Win32.SWP_NOSIZE | Win32.SWP_NOZORDER |
+            Win32.SWP_NOACTIVATE | Win32.SWP_NOREDRAW);
     }
 
     /// <summary>拖入文件夹时三个区域一起显现：说明文字 + 底色 + 分隔线。</summary>
@@ -876,15 +930,45 @@ public partial class MainWindow : Window
 
     // ---------- 从资源管理器拖入 ----------
 
-    private void OnDragEnter(object sender, DragEventArgs e) => EvaluateDrag(e);
+    private void OnDragEnter(object sender, DragEventArgs e)
+    {
+        // 每轮拖动只在「进入」时读一次载荷：GetData 是跨进程 COM 调用，
+        // 而 DragOver 每秒会来几十次，不能每次都读。
+        _dropAccepts = AcceptsFolderPayload(e.Data);
+        EvaluateDrag(e);
+    }
 
     private void OnDragOver(object sender, DragEventArgs e) => EvaluateDrag(e);
 
+    /// <summary>
+    /// 本次拖放的载荷里有没有文件夹。
+    /// 只有「明确是文件拖放、且一个文件夹都没有」才返回 false；
+    /// 是文件拖放但内容读不出来时返回 null（按未知处理，维持原有响应），
+    /// 免得把真正的文件夹拖入误判成普通文件。
+    /// </summary>
+    private static bool? AcceptsFolderPayload(IDataObject data)
+    {
+        if (!data.GetDataPresent(DataFormats.FileDrop)) return false;
+        if (data.GetData(DataFormats.FileDrop) is not string[] paths || paths.Length == 0)
+            return null;
+        return paths.Any(Directory.Exists);   // 多选时只要有一个文件夹就收
+    }
+
     private void EvaluateDrag(DragEventArgs e)
     {
-        bool ok = e.Data.GetDataPresent(DataFormats.FileDrop);
+        bool ok = _dropAccepts ?? e.Data.GetDataPresent(DataFormats.FileDrop);
         e.Effects = ok ? DragDropEffects.Copy : DragDropEffects.None;
         SetZoneLabels(ok);
+
+        // 载荷里没有文件夹：除了不亮区域，还要让整条让路。
+        // 穿透状态不要去撤：Disarm 传 false 就是为了少一次样式往返（否则会多闪一下）。
+        if (!ok)
+        {
+            _suppressArm = true;
+            Disarm(releasePassThrough: false);   // 别撤穿透，下面紧接着就要设回来
+            SetPassThrough(true);
+        }
+
         e.Handled = true;
     }
 
